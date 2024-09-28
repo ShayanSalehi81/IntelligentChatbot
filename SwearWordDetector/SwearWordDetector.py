@@ -1,6 +1,9 @@
-class PersianSwear:
-    def __init__(self):
-        with open('data.json', 'r', encoding='utf-8') as file:
+import json
+from string import punctuation
+
+class SwearWordDetector:
+    def __init__(self, data_path):
+        with open(data_path, 'r', encoding='utf-8') as file:
             self.data = json.load(file)
         self.swear_words = set(self.data["word"])
 
