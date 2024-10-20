@@ -1,5 +1,6 @@
 import os
 import torch
+import random
 import numpy as np
 import pandas as pd
 
@@ -14,6 +15,8 @@ class ChatBot:
         self.answers_dataframe = self.load_answers(answers_data_file_path)
         self.target_questions = self.qa_dataframe['target_question'].to_list()
         self.target_answers = self.load_target_answers()
+        self.prefixes = self.load_fixes_dataset('Datasets/prefixes.txt')
+        self.postfixes = self.load_fixes_dataset('Datasets/postfixes.txt')
         self.tokenizer = AutoTokenizer.from_pretrained("sharif-dal/dal-bert")
         self.embedding_model = AutoModel.from_pretrained("sharif-dal/dal-bert")
         self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/qa_embeddings.npy')
@@ -27,6 +30,11 @@ class ChatBot:
             for ـ, row in self.answers_dataframe[sheet].iterrows():
                     target_answers.append(row['پاسخ'])
         return target_answers
+    
+    def load_fixes_dataset(self, file_path):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return content.split('\n')
 
     def load_data(self, file_path):
         return pd.read_csv(file_path)
@@ -73,4 +81,5 @@ class ChatBot:
     
     def return_answer(self, query):
         index = self.find_most_similar_question(query)
-        return self.target_questions[index] + self.target_answers[index]
+        prefix, postfix = random.choice(self.prefixes), random.choice(self.postfixes)
+        return self.target_questions[index] + ' ### ' + prefix + ' ' + self.target_answers[index] + ' ' + postfix
