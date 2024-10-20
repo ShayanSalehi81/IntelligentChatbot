@@ -7,15 +7,18 @@ class Chatbot:
     def __init__(self) -> None:
         self.swear_detector = SwearWordDetector('SwearWordDetector/swear_words.json')
         self.spelling_corrector = SpellingMistakeCorrector('SpellingMistakeCorrector/frequency_combined.csv', threshold=0.2)
-        self.chat_bot = ChatBot(questions_data_file_path='Datasets\Result_QA.csv')
+        self.chat_bot = ChatBot(questions_data_file_path='Datasets/target_and_similar_questions.csv', answers_data_file_path='Datasets/questions_with_answers.xlsx')
 
     def chat(self, query) -> str:
         spell_corrected_query = self.spelling_corrector.correct_spelling(query)
         censored_query = self.swear_detector.filter_words(spell_corrected_query)
-        most_similar_question = self.chat_bot.find_most_similar_question(query=censored_query)
-        return most_similar_question
+        answer = self.chat_bot.return_answer(query=censored_query)
+        return answer
 
 
 if __name__ == '__main__':
     chatbot = Chatbot()
-    print(chatbot.chat('صلام'))
+    response = chatbot.chat('سرویس‌های سیستم')
+
+    with open('Outputs/response.txt', 'w', encoding='utf-8') as file:
+        file.write(response)

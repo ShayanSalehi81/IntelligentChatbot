@@ -1,5 +1,6 @@
 import os
 import torch
+import random
 import numpy as np
 import pandas as pd
 
@@ -9,12 +10,31 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 class ChatBot:
-    def __init__(self, questions_data_file_path):
+    def __init__(self, questions_data_file_path, answers_data_file_path):
         self.qa_dataframe = self.load_data(questions_data_file_path)
+        self.answers_dataframe = self.load_answers(answers_data_file_path)
         self.target_questions = self.qa_dataframe['target_question'].to_list()
+        self.target_answers = self.load_target_answers()
+        self.prefixes = self.load_fixes_dataset('Datasets/prefixes.txt')
+        self.postfixes = self.load_fixes_dataset('Datasets/postfixes.txt')
         self.tokenizer = AutoTokenizer.from_pretrained("sharif-dal/dal-bert")
         self.embedding_model = AutoModel.from_pretrained("sharif-dal/dal-bert")
         self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/qa_embeddings.npy')
+
+    def load_answers(self, file_path):
+        return pd.read_excel(file_path, sheet_name=None)
+    
+    def load_target_answers(self):
+        target_answers = []
+        for sheet in self.answers_dataframe:
+            for ـ, row in self.answers_dataframe[sheet].iterrows():
+                    target_answers.append(row['پاسخ'])
+        return target_answers
+    
+    def load_fixes_dataset(self, file_path):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return content.split('\n')
 
     def load_data(self, file_path):
         return pd.read_csv(file_path)
@@ -57,4 +77,9 @@ class ChatBot:
         query_embedding = self.get_one_sentence_embedding(query)
         similarity_matrix = self.calculate_cosine_similarity(query_embedding, self.dataset_embeddings)
         predicted_indices = similarity_matrix.argmax(axis=1)
-        return self.target_questions[predicted_indices[0]]
+        return predicted_indices[0]
+    
+    def return_answer(self, query):
+        index = self.find_most_similar_question(query)
+        prefix, postfix = random.choice(self.prefixes), random.choice(self.postfixes)
+        return self.target_questions[index] + ' ### ' + prefix + ' ' + self.target_answers[index] + ' ' + postfix
