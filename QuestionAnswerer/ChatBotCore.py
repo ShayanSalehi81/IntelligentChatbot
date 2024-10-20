@@ -14,7 +14,7 @@ class ChatBot:
         self.target_questions = self.qa_dataframe['target_question'].to_list()
         self.tokenizer = AutoTokenizer.from_pretrained("sharif-dal/dal-bert")
         self.embedding_model = AutoModel.from_pretrained("sharif-dal/dal-bert")
-        self.dataset_embeddings = self.get_or_generate_embeddings(df=self.qa_dataframe, file_path='train_df1_embeddings.npy')
+        self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/qa_embeddings.npy')
 
     def load_data(self, file_path):
         return pd.read_csv(file_path)
@@ -23,7 +23,7 @@ class ChatBot:
         inputs = self.tokenizer(sentence, return_tensors="pt", truncation=True, padding=True)
         with torch.no_grad():
             output = self.embedding_model(**inputs)
-        return output
+        return output.last_hidden_state.mean(dim=1).numpy()
     
     def get_embeddings(self, sentences):
         embeddings = []
@@ -40,13 +40,13 @@ class ChatBot:
     def load_embeddings(self, file_path):
         return np.load(file_path)
     
-    def get_or_generate_embeddings(self, df, file_path):
+    def get_or_generate_embeddings(self, file_path):
         if os.path.exists(file_path):
             print(f"Loading embeddings from {file_path}")
             return self.load_embeddings(file_path)
         else:
             print(f"Generating embeddings for {file_path}")
-            embeddings = self.get_embeddings(df.tolist())
+            embeddings = self.get_embeddings(self.qa_dataframe['target_question'].tolist())
             self.save_embeddings(embeddings, file_path)
             return embeddings
         
@@ -57,4 +57,4 @@ class ChatBot:
         query_embedding = self.get_one_sentence_embedding(query)
         similarity_matrix = self.calculate_cosine_similarity(query_embedding, self.dataset_embeddings)
         predicted_indices = similarity_matrix.argmax(axis=1)
-        return self.target_questions[predicted_indices]
+        return self.target_questions[predicted_indices[0]]
