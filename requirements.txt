@@ -1,5 +1,9 @@
-json
-string
-re
-pandas
 Levenshtein
+numpy
+pandas
+re
+scikit-learn
+string
+torch
+tqdm
+transformers

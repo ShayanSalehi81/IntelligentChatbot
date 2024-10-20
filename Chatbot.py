@@ -7,7 +7,7 @@ class Chatbot:
     def __init__(self) -> None:
         self.swear_detector = SwearWordDetector('SwearWordDetector/swear_words.json')
         self.spelling_corrector = SpellingMistakeCorrector('SpellingMistakeCorrector/frequency_combined.csv', threshold=0.2)
-        self.chat_bot = ChatBot(questions_data_file_path='Datasets\Result_QA.csv')
+        self.chat_bot = ChatBot(questions_data_file_path='Datasets/Result_QA.csv')
 
     def chat(self, query) -> str:
         spell_corrected_query = self.spelling_corrector.correct_spelling(query)
