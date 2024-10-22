@@ -81,6 +81,6 @@ class ChatBot:
     def return_answer(self, query):
         index = self.find_most_similar_question(query)
         prefix, postfix = random.choice(self.prefixes), random.choice(self.postfixes)
-        answer = prefix + ' ' + random.choice(self.extended_answers[self.target_answers[index]]) + ' ' + postfix
-        response = f'سوال تشخیص داده شده: {self.target_questions[index]} \n\n پاسخ گسترش یافته آن: {answer}'
+        answer = prefix + random.choice(self.extended_answers[self.target_answers[index]]) + ' ' + postfix
+        response = f'سوال تشخیص داده شده: {self.target_questions[index]} \n\n پاسخ گسترش یافته آن: {answer} \n\n\n\n'
         return response
