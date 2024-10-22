@@ -14,6 +14,15 @@ class Chatbot:
         censored_query = self.swear_detector.filter_words(spell_corrected_query)
         answer = self.chat_bot.return_answer(query=censored_query)
         return answer
+    
+    def analize(self, query):
+        print(f'پرسش پرسیده شده: {query}')
+        spell_corrected_query = self.spelling_corrector.correct_spelling(query)
+        print(f'پرسش پس از اصلاح غلط املایی: {spell_corrected_query}')
+        censored_query = self.swear_detector.filter_words(spell_corrected_query)
+        print(f'پرسش پس از سانسور کلمات رکیک: {censored_query}')
+        answer = self.chat_bot.return_answer(query=censored_query)
+        print(answer)
 
 
 if __name__ == '__main__':
