@@ -1,11 +1,8 @@
+Flask==2.2.3
+Levenshtein==0.20.2
 numpy
+pandas==1.5.3
 scikit-learn
 torch
 tqdm
 transformers
-json==2.0.9
-string==0.4.0
-re==2.2.1
-pandas==1.5.3
-Levenshtein==0.20.2
-Flask==2.2.3
