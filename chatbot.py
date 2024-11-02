@@ -15,7 +15,7 @@ class Chatbot:
     def chat(self, query) -> str:
         spell_corrected_query = self.spelling_corrector.correct_spelling(query)
         censored_query = self.swear_detector.filter_words(spell_corrected_query)
-        answer = self.chat_bot.return_answer(query=censored_query)
+        answer = self.chat_bot.return_answer_only(query=censored_query)
         return answer
     
     def analize(self, query):
@@ -24,7 +24,7 @@ class Chatbot:
         print(f'پرسش پس از اصلاح غلط املایی: {spell_corrected_query}')
         censored_query = self.swear_detector.filter_words(spell_corrected_query)
         print(f'پرسش پس از سانسور کلمات رکیک: {censored_query}')
-        answer = self.chat_bot.return_answer(query=censored_query)
+        answer = self.chat_bot.return_question_with_answer(query=censored_query)
         print(answer)
 
 

@@ -80,12 +80,18 @@ class ChatBot:
         predicted_indices = similarity_matrix.argmax(axis=1)
         return predicted_indices[0]
     
-    def return_response_of_dislike_model(self):
-        return self.dislike_model.return_dislike_response()
-    
-    def return_answer(self, query):
+    def return_question_with_answer(self, query):
         index = self.find_most_similar_question(query)
         prefix, postfix = random.choice(self.prefixes), random.choice(self.postfixes)
         answer = prefix + ' ' + random.choice(self.extended_answers[self.target_answers[index]]).strip() + ' ' + postfix
         response = f'سوال تشخیص داده شده: {self.target_questions[index]} \n پاسخ گسترش یافته آن: {answer} \n\n\n'
         return response
+    
+    def return_answer_only(self, query):
+        index = self.find_most_similar_question(query)
+        prefix, postfix = random.choice(self.prefixes), random.choice(self.postfixes)
+        answer = prefix + ' ' + random.choice(self.extended_answers[self.target_answers[index]]).strip() + ' ' + postfix
+        return answer
+
+    def return_response_of_dislike_model(self):
+        return self.dislike_model.return_dislike_response()
