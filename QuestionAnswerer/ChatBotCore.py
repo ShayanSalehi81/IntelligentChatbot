@@ -8,11 +8,13 @@ from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModel
 from sklearn.metrics.pairwise import cosine_similarity
 from QuestionAnswerer.DislikeResponseGenerator import DislikeResponseGenerator
+from QuestionAnswerer.NotClearResponseGenerator import NotClearGenerator
 from QuestionAnswerer.IntroductionResponseGenerator import IntroductionGenerator
 
 
 class ChatBot:
-    def __init__(self, dataset_file_path):
+    def __init__(self, dataset_file_path, confidence_threshold):
+        self.confidence_threshold = confidence_threshold
         self.qa_dataframe = self.load_data(dataset_file_path)
         self.target_questions = self.qa_dataframe['target_question'].to_list()
         self.target_answers = self.qa_dataframe['target_answer'].to_list()
@@ -24,6 +26,7 @@ class ChatBot:
         self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/qa_embeddings.npy')
         self.dislike_model = DislikeResponseGenerator()
         self.intro_model = IntroductionGenerator()
+        self.not_clear_model = NotClearGenerator()
     
     def load_fixes_dataset(self, file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -79,18 +82,24 @@ class ChatBot:
     def find_most_similar_question(self, query):
         query_embedding = self.get_one_sentence_embedding(query)
         similarity_matrix = self.calculate_cosine_similarity(query_embedding, self.dataset_embeddings)
-        predicted_indices = similarity_matrix.argmax(axis=1)
-        return predicted_indices[0]
+        
+        max_similarity = similarity_matrix.max(axis=1)[0]
+        predicted_index = similarity_matrix.argmax(axis=1)[0]
+        
+        confidence = (max_similarity + 1) / 2  # Normalize to range [0, 1]
+        return predicted_index, confidence
     
     def return_question_with_answer(self, query):
-        index = self.find_most_similar_question(query)
+        index, confidence = self.find_most_similar_question(query)
         prefix, postfix = random.choice(self.prefixes), random.choice(self.postfixes)
         answer = prefix + ' ' + random.choice(self.extended_answers[self.target_answers[index]]).strip() + ' ' + postfix
-        response = f'سوال تشخیص داده شده: {self.target_questions[index]} \n پاسخ گسترش یافته آن: {answer} \n\n\n'
+        response = f'سوال تشخیص داده شده: {self.target_questions[index]} \n میزان اعتماد آن: {confidence} \n پاسخ گسترش یافته آن: {answer} \n\n\n'
         return response
     
     def return_answer_only(self, query):
-        index = self.find_most_similar_question(query)
+        index, confidence = self.find_most_similar_question(query)
+        if confidence < self.confidence_threshold:
+            return self.not_clear_model.return_not_clear_response()
         prefix, postfix = random.choice(self.prefixes), random.choice(self.postfixes)
         answer = prefix + ' ' + random.choice(self.extended_answers[self.target_answers[index]]).strip() + ' ' + postfix
         return answer
