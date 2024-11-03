@@ -9,14 +9,17 @@ class Chatbot:
         self.spelling_corrector = SpellingMistakeCorrector('SpellingMistakeCorrector/frequency_combined.csv', threshold=0.2)
         self.chat_bot = ChatBot(dataset_file_path='Datasets/Dataset.csv',)
 
-    def dislike(self) -> str:
-        return self.chat_bot.return_response_of_dislike_model()
+    def introduction(self) -> str:
+        return self.chat_bot.return_response_of_intro_model()
 
     def chat(self, query) -> str:
         spell_corrected_query = self.spelling_corrector.correct_spelling(query)
         censored_query = self.swear_detector.filter_words(spell_corrected_query)
         answer = self.chat_bot.return_answer_only(query=censored_query)
         return answer
+    
+    def dislike(self) -> str:
+        return self.chat_bot.return_response_of_dislike_model()
     
     def analize(self, query):
         print(f'پرسش پرسیده شده: {query}')

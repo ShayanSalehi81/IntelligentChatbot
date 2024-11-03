@@ -8,6 +8,7 @@ from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModel
 from sklearn.metrics.pairwise import cosine_similarity
 from QuestionAnswerer.DislikeResponseGenerator import DislikeResponseGenerator
+from QuestionAnswerer.IntroductionResponseGenerator import IntroductionGenerator
 
 
 class ChatBot:
@@ -22,6 +23,7 @@ class ChatBot:
         self.embedding_model = AutoModel.from_pretrained("sharif-dal/dal-bert")
         self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/qa_embeddings.npy')
         self.dislike_model = DislikeResponseGenerator()
+        self.intro_model = IntroductionGenerator()
     
     def load_fixes_dataset(self, file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -95,3 +97,6 @@ class ChatBot:
 
     def return_response_of_dislike_model(self):
         return self.dislike_model.return_dislike_response()
+    
+    def return_response_of_intro_model(self):
+        return self.intro_model.return_intro_response()
