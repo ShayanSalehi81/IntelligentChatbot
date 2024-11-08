@@ -39,8 +39,11 @@ class SpellingMistakeCorrector:
         
         for candidate, dist in candidates:
             frequency_score = self.frequency_dict.get(candidate, 0) / self.max_freq
+
+            if dist == 0:
+                return candidate
             
-            combined_score = ((1 - dist) + (frequency_score / 4)) / 2
+            combined_score = ((1 - dist) + (frequency_score / 5))
             
             if combined_score > max_score:
                 max_score = combined_score
