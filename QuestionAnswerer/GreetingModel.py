@@ -10,34 +10,17 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 class Greeting:
-    def __init__(self, dataset_file_path, confidence_threshold):
-        self.confidence_threshold = confidence_threshold
-        self.qa_dataframe = self.load_data(dataset_file_path)
-        self.target_questions = self.qa_dataframe['target_question'].to_list()
-        self.target_answers = self.qa_dataframe['target_answer'].to_list()
-        self.extended_answers = self.load_extended_answers()
-        self.prefixes = self.load_fixes_dataset('Datasets/prefixes.txt')
-        self.postfixes = self.load_fixes_dataset('Datasets/postfixes.txt')
+    def __init__(self, dataset_file_path, greeting_confidence_threshold):
+        self.greeting_confidence_threshold = greeting_confidence_threshold
+        self.greeting_dataframe = self.load_data(dataset_file_path)
+        self.examples = self.greeting_dataframe['example'].to_list()
+        self.intents = self.greeting_dataframe['intent'].to_list()
         self.tokenizer = AutoTokenizer.from_pretrained("sharif-dal/dal-bert")
         self.embedding_model = AutoModel.from_pretrained("sharif-dal/dal-bert")
-        self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/qa_embeddings.npy')
-
-    def load_fixes_dataset(self, file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            content = file.read()
-        return content.split('\n')
+        self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/greeting_embeddings.npy')
 
     def load_data(self, file_path):
-        return pd.read_csv(file_path)
-    
-    def load_extended_answers(self):
-        extended_answers = {}
-        for _, row in self.qa_dataframe.iterrows():
-            if pd.notna(row['extended_answers']):
-                extended_answers[row['target_answer']] = list(row['extended_answers'].split(','))    
-            else:
-                extended_answers[row['target_answer']] = list() 
-        return extended_answers   
+        return pd.read_csv(file_path)  
     
     def get_one_sentence_embedding(self, sentence):
         inputs = self.tokenizer(sentence, return_tensors="pt", truncation=True, padding=True)
@@ -66,7 +49,7 @@ class Greeting:
             return self.load_embeddings(file_path)
         else:
             print(f"Generating embeddings for {file_path}")
-            embeddings = self.get_embeddings(self.qa_dataframe['target_question'].tolist())
+            embeddings = self.get_embeddings(self.examples)
             self.save_embeddings(embeddings, file_path)
             return embeddings
         
@@ -83,23 +66,13 @@ class Greeting:
         confidence = (max_similarity + 1) / 2  # Normalize to range [0, 1]
         return predicted_index, confidence
     
-    def return_question_with_answer(self, query):
+    def return_complex_answer(self, query):
         index, confidence = self.find_most_similar_question(query)
-        prefix, postfix = random.choice(self.prefixes), random.choice(self.postfixes)
-        answer = prefix + ' ' + random.choice(self.extended_answers[self.target_answers[index]]).strip() + ' ' + postfix
-        response = f'سوال تشخیص داده شده: {self.target_questions[index]} \n میزان اعتماد آن: {confidence} \n پاسخ گسترش یافته آن: {answer} \n\n\n'
+        response = f'سوال تشخیص داده شده: {self.intents[index]} \n میزان اعتماد آن: {confidence} \n\n\n'
         return response
     
-    def return_answer_only(self, query):
+    def return_simple_answer(self, query):
         index, confidence = self.find_most_similar_question(query)
-        if confidence < self.confidence_threshold:
-            return self.not_clear_model.return_not_clear_response()
-        prefix, postfix = random.choice(self.prefixes), random.choice(self.postfixes)
-        answer = prefix + ' ' + random.choice(self.extended_answers[self.target_answers[index]]).strip() + ' ' + postfix
-        return answer
-
-    def return_response_of_dislike_model(self):
-        return self.dislike_model.return_dislike_response()
-    
-    def return_response_of_intro_model(self):
-        return self.intro_model.return_intro_response()
+        if confidence < self.greeting_confidence_threshold:
+            return 'نفهمیدم'
+        return self.intents[index]

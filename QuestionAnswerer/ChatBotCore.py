@@ -10,6 +10,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from QuestionAnswerer.DislikeResponseGenerator import DislikeResponseGenerator
 from QuestionAnswerer.NotClearResponseGenerator import NotClearGenerator
 from QuestionAnswerer.IntroductionResponseGenerator import IntroductionGenerator
+from QuestionAnswerer.GreetingModel import Greeting
 
 
 class ChatBot:
@@ -24,6 +25,7 @@ class ChatBot:
         self.tokenizer = AutoTokenizer.from_pretrained("sharif-dal/dal-bert")
         self.embedding_model = AutoModel.from_pretrained("sharif-dal/dal-bert")
         self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/qa_embeddings.npy')
+        self.greeting_model = Greeting(dataset_file_path='Datasets/greeting_dataset_filtered.csv', greeting_confidence_threshold=0.88)
         self.dislike_model = DislikeResponseGenerator()
         self.intro_model = IntroductionGenerator()
         self.not_clear_model = NotClearGenerator()
@@ -109,3 +111,6 @@ class ChatBot:
     
     def return_response_of_intro_model(self):
         return self.intro_model.return_intro_response()
+    
+    def greeting_answer(self, query):
+        return self.greeting_model.return_complex_answer(query=query)

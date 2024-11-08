@@ -12,7 +12,7 @@ class Chatbot:
     def introduction(self) -> str:
         return self.chat_bot.return_response_of_intro_model()
 
-    def chat(self, query) -> str:
+    def chat(self, query:str) -> str:
         spell_corrected_query = self.spelling_corrector.correct_spelling(query)
         censored_query = self.swear_detector.filter_words(spell_corrected_query)
         answer = self.chat_bot.return_answer_only(query=censored_query)
@@ -21,7 +21,10 @@ class Chatbot:
     def dislike(self) -> str:
         return self.chat_bot.return_response_of_dislike_model()
     
-    def analize(self, query):
+    def greeting(self, query:str) -> str:
+        return self.chat_bot.greeting_answer(query)
+    
+    def analize(self, query:str):
         print(f'پرسش پرسیده شده: {query}')
         spell_corrected_query = self.spelling_corrector.correct_spelling(query)
         print(f'پرسش پس از اصلاح غلط املایی: {spell_corrected_query}')
