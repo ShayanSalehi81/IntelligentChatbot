@@ -1,4 +1,5 @@
 import os
+import json
 import torch
 import random
 import numpy as np
@@ -10,9 +11,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 class Greeting:
-    def __init__(self, dataset_file_path, greeting_confidence_threshold):
-        self.greeting_confidence_threshold = greeting_confidence_threshold
+    def __init__(self, dataset_file_path, response_file_path):
         self.greeting_dataframe = self.load_data(dataset_file_path)
+        self.greeting_response = self.load_response(response_file_path)
         self.examples = self.greeting_dataframe['example'].to_list()
         self.intents = self.greeting_dataframe['intent'].to_list()
         self.tokenizer = AutoTokenizer.from_pretrained("sharif-dal/dal-bert")
@@ -21,6 +22,10 @@ class Greeting:
 
     def load_data(self, file_path):
         return pd.read_csv(file_path)  
+    
+    def load_response(self, file_path):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return json.load(file)
     
     def get_one_sentence_embedding(self, sentence):
         inputs = self.tokenizer(sentence, return_tensors="pt", truncation=True, padding=True)
@@ -73,6 +78,5 @@ class Greeting:
     
     def return_simple_answer(self, query):
         index, confidence = self.find_most_similar_question(query)
-        if confidence < self.greeting_confidence_threshold:
-            return 'نفهمیدم'
-        return self.intents[index]
+        answers = next((item['answers'] for item in self.greeting_response if item['intent'] == self.intents[index]))
+        return random.choice(answers), confidence

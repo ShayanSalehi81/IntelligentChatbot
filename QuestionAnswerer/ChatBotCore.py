@@ -14,8 +14,9 @@ from QuestionAnswerer.GreetingModel import Greeting
 
 
 class ChatBot:
-    def __init__(self, dataset_file_path, confidence_threshold):
+    def __init__(self, dataset_file_path, confidence_threshold, greeting_confidence_threshold):
         self.confidence_threshold = confidence_threshold
+        self.greeting_confidence_threshold = greeting_confidence_threshold
         self.qa_dataframe = self.load_data(dataset_file_path)
         self.target_questions = self.qa_dataframe['target_question'].to_list()
         self.target_answers = self.qa_dataframe['target_answer'].to_list()
@@ -25,7 +26,7 @@ class ChatBot:
         self.tokenizer = AutoTokenizer.from_pretrained("sharif-dal/dal-bert")
         self.embedding_model = AutoModel.from_pretrained("sharif-dal/dal-bert")
         self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/qa_embeddings.npy')
-        self.greeting_model = Greeting(dataset_file_path='Datasets/greeting_dataset_filtered.csv', greeting_confidence_threshold=0.88)
+        self.greeting_model = Greeting(dataset_file_path='Datasets/greeting_dataset_filtered.csv', response_file_path='Datasets/greeting_response.json')
         self.dislike_model = DislikeResponseGenerator()
         self.intro_model = IntroductionGenerator()
         self.not_clear_model = NotClearGenerator()
@@ -99,6 +100,9 @@ class ChatBot:
         return response
     
     def return_answer_only(self, query):
+        greeting_response, greeting_confidence = self.greeting_model.return_simple_answer(query)
+        if greeting_confidence > self.greeting_confidence_threshold:
+            return greeting_response
         index, confidence = self.find_most_similar_question(query)
         if confidence < self.confidence_threshold:
             return self.not_clear_model.return_not_clear_response()

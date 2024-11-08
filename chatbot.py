@@ -7,7 +7,7 @@ class Chatbot:
     def __init__(self) -> None:
         self.swear_detector = SwearWordDetector('SwearWordDetector/swear_words.json')
         self.spelling_corrector = SpellingMistakeCorrector('SpellingMistakeCorrector/frequency_updated.csv', threshold=0.2)
-        self.chat_bot = ChatBot(dataset_file_path='Datasets/Dataset.csv', confidence_threshold=0.83)
+        self.chat_bot = ChatBot(dataset_file_path='Datasets/Dataset.csv', confidence_threshold=0.83, greeting_confidence_threshold=0.88)
 
     def introduction(self) -> str:
         return self.chat_bot.return_response_of_intro_model()
