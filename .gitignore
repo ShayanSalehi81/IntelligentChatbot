@@ -374,3 +374,4 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,flask,pycharm+all,visualstudiocode
 temp.ipynb
+/Models/dal-bert

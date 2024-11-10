@@ -23,8 +23,9 @@ class ChatBot:
         self.extended_answers = self.load_extended_answers()
         self.prefixes = self.load_fixes_dataset('Datasets/prefixes.txt')
         self.postfixes = self.load_fixes_dataset('Datasets/postfixes.txt')
-        self.tokenizer = AutoTokenizer.from_pretrained("sharif-dal/dal-bert")
-        self.embedding_model = AutoModel.from_pretrained("sharif-dal/dal-bert")
+        self.model_path = self.get_or_download_model(model_name='sharif-dal/dal-bert')
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+        self.embedding_model = AutoModel.from_pretrained(self.model_path)
         self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/qa_embeddings.npy')
         self.greeting_model = Greeting(dataset_file_path='Datasets/greeting_dataset_filtered.csv', response_file_path='Datasets/greeting_response.json')
         self.dislike_model = DislikeResponseGenerator()
@@ -47,6 +48,19 @@ class ChatBot:
             else:
                 extended_answers[row['target_answer']] = list() 
         return extended_answers   
+    
+    def get_or_download_model(self, model_name, local_model_dir='Models/dal-bert'):
+        if not os.path.exists(local_model_dir):
+            print(f"Model not found locally. Downloading {model_name} and saving to {local_model_dir}.")
+            tokenizer = AutoTokenizer.from_pretrained(model_name)
+            model = AutoModel.from_pretrained(model_name)
+            os.makedirs(local_model_dir, exist_ok=True)
+            tokenizer.save_pretrained(local_model_dir)
+            model.save_pretrained(local_model_dir)
+            print(f"Model saved to {local_model_dir}.")
+        else:
+            print(f"Model found locally at {local_model_dir}.")
+        return local_model_dir
     
     def get_one_sentence_embedding(self, sentence):
         inputs = self.tokenizer(sentence, return_tensors="pt", truncation=True, padding=True)

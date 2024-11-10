@@ -16,8 +16,9 @@ class Greeting:
         self.greeting_response = self.load_response(response_file_path)
         self.examples = self.greeting_dataframe['example'].to_list()
         self.intents = self.greeting_dataframe['intent'].to_list()
-        self.tokenizer = AutoTokenizer.from_pretrained("sharif-dal/dal-bert")
-        self.embedding_model = AutoModel.from_pretrained("sharif-dal/dal-bert")
+        self.model_path = self.get_or_download_model(model_name='sharif-dal/dal-bert')
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+        self.embedding_model = AutoModel.from_pretrained(self.model_path)
         self.dataset_embeddings = self.get_or_generate_embeddings(file_path='Embeddings/greeting_embeddings.npy')
 
     def load_data(self, file_path):
@@ -26,6 +27,19 @@ class Greeting:
     def load_response(self, file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
             return json.load(file)
+        
+    def get_or_download_model(self, model_name, local_model_dir='Models/dal-bert'):
+        if not os.path.exists(local_model_dir):
+            print(f"Model not found locally. Downloading {model_name} and saving to {local_model_dir}.")
+            tokenizer = AutoTokenizer.from_pretrained(model_name)
+            model = AutoModel.from_pretrained(model_name)
+            os.makedirs(local_model_dir, exist_ok=True)
+            tokenizer.save_pretrained(local_model_dir)
+            model.save_pretrained(local_model_dir)
+            print(f"Model saved to {local_model_dir}.")
+        else:
+            print(f"Model found locally at {local_model_dir}.")
+        return local_model_dir
     
     def get_one_sentence_embedding(self, sentence):
         inputs = self.tokenizer(sentence, return_tensors="pt", truncation=True, padding=True)
